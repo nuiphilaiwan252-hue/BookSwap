@@ -544,6 +544,18 @@ function goToAuth(mode) {
     switchAuthTab(mode);
 }
 
+function switchAuthTab(mode) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    if (mode === 'login') {
+        if(loginForm) loginForm.classList.add('active');
+        if(registerForm) registerForm.classList.remove('active');
+    } else {
+        if(registerForm) registerForm.classList.add('active');
+        if(loginForm) loginForm.classList.remove('active');
+    }
+}
+
 function backToSplash() {
     document.getElementById('splash').classList.remove('hidden');
     document.getElementById('auth-screen').classList.remove('active');
