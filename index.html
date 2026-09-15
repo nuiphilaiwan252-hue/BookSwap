@@ -560,7 +560,39 @@ function updateBalance(coin) {
   document.getElementById('head-balance').textContent = coin;
   if(currentUser) currentUser.balance = coin;
 }
+// ========= ระบบเข้าสู่ระบบ (Login) =========
+function handleLogin(event) {
+    if (event) event.preventDefault();
+    
+    // ดึงค่าจาก input (ใช้ id หรือ selector ตามโครงสร้างเดิม)
+    const emailInput = document.querySelector('#auth-screen input[type="email"]') || document.querySelector('#auth-screen input[placeholder*="อีเมล"]');
+    const passwordInput = document.querySelector('#auth-screen input[type="password"]') || document.querySelector('#auth-screen input[placeholder*="รหัส"]');
+    
+    const email = emailInput ? emailInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value.trim() : '';
 
+    if (!email || !password) {
+        alert('กรุณากรอกอีเมลและรหัสนิสิตให้ครบถ้วน');
+        return;
+    }
+
+    if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
+        alert('กรุณาใช้อีเมลมหาวิทยาลัย (@' + ALLOWED_DOMAIN + ') เท่านั้น');
+        return;
+    }
+
+    // ดึงรหัสนิสิตจากอีเมล
+    const stdId = email.split('@')[0];
+
+    // จำลองข้อมูลผู้ใช้และพาเข้าสู่หน้าหลัก
+    const userData = {
+        email: email,
+        stdId: stdId,
+        balance: 200
+    };
+
+    showMainApp(userData);
+}
 // ========== สลับหน้าในแอป (ใช้ข้อมูลร่วมกัน) ==========
 function goToPage(pageName) {
   document.querySelectorAll('.main-app .page').forEach(p => p.classList.remove('active'));
