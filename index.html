@@ -537,34 +537,37 @@ const ALLOWED_DOMAIN = 'msu.ac.th';
 let cart = [];
 let transactionId = '';
 
-// ========== นำทางหลัก (คงเดิม) ==========
+// ==================== นำทางหลัก ====================
 function goToAuth(mode) {
-  document.getElementById('splash').classList.add('hidden');
-  document.getElementById('auth-screen').classList.add('active');
-  switchAuthTab(mode);
+    document.getElementById('splash').classList.add('hidden');
+    document.getElementById('auth-screen').classList.add('active');
+    switchAuthTab(mode);
 }
+
 function backToSplash() {
-  document.getElementById('splash').classList.remove('hidden');
-  document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('splash').classList.remove('hidden');
+    document.getElementById('auth-screen').classList.remove('active');
 }
+
 function showMainApp(userData) {
-  currentUser = userData;
-  localStorage.setItem(SITE_KEY, JSON.stringify(userData));
-  document.getElementById('splash').classList.add('hidden');
-  document.getElementById('auth-screen').classList.remove('active');
-  document.getElementById('main-app').classList.add('active');
-  document.getElementById('display-stdid').textContent = `รหัส: ${userData.stdId}`;
-  updateBalance(userData.balance || 0);
+    currentUser = userData;
+    localStorage.setItem(SITE_KEY, JSON.stringify(userData));
+    document.getElementById('splash').classList.add('hidden');
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('main-app').classList.add('active');
+    document.getElementById('display-stdid').textContent = `รหัส: ${userData.stdId}`;
+    updateBalance(userData.balance || 0);
 }
+
 function updateBalance(coin) {
-  document.getElementById('head-balance').textContent = coin;
-  if(currentUser) currentUser.balance = coin;
+    document.getElementById('head-balance').textContent = coin;
+    if(currentUser) currentUser.balance = coin;
 }
-// ========= ระบบเข้าสู่ระบบ (Login) =========
+
+// ==================== ระบบเข้าสู่ระบบ (Login) ====================
 function handleLogin(event) {
     if (event) event.preventDefault();
     
-    // ดึงค่าจาก input (ใช้ id หรือ selector ตามโครงสร้างเดิม)
     const emailInput = document.querySelector('#auth-screen input[type="email"]') || document.querySelector('#auth-screen input[placeholder*="อีเมล"]');
     const passwordInput = document.querySelector('#auth-screen input[type="password"]') || document.querySelector('#auth-screen input[placeholder*="รหัส"]');
     
@@ -581,10 +584,8 @@ function handleLogin(event) {
         return;
     }
 
-    // ดึงรหัสนิสิตจากอีเมล
     const stdId = email.split('@')[0];
 
-    // จำลองข้อมูลผู้ใช้และพาเข้าสู่หน้าหลัก
     const userData = {
         email: email,
         stdId: stdId,
