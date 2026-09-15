@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 BookSwap — แพลตฟอร์มแลกเปลี่ยนความรู้นิสิต</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+    :root {
+      --primary: #1E40AF; --primary-dark: #1E3A8A; --accent: #F59E0B;
+      --bg: #F8FAFC; --card: #FFFFFF; --text: #1E293B; --text-light: #64748B;
+      --success: #10B981; --danger: #EF4444; --info: #2563EB; --shadow: 0 10px 40px rgba(0,0,0,0.12); --radius: 20px;
+    }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ======================================
+       🚀 หน้าเริ่มต้น (Startup Style)
+    ====================================== */
+    .splash-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 9999; color: white; padding: 8%;
+      transition: opacity 0.5s ease, transform 0.4s ease;
+    }
+    .splash-screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
+    .splash-logo { font-size: 4rem; margin-bottom: 20px; }
+    .splash-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; text-align: center; }
+    .splash-sub { font-size: 1.1rem; opacity: 0.9; text-align: center; margin-bottom: 40px; line-height: 1.6; }
+    .splash-highlight { color: #FCD34D; font-weight: bold; }
+    .splash-btns { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; }
+    .btn { padding: 14px 20px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.25s; }
+    .btn-primary { background: white; color: var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+    .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.7); }
+    .btn-outline:hover { background: rgba(255,255,255,0.15); border-color: white; }
+    .splash-footer { margin-top: 40px; font-size: 0.85rem; opacity: 0.75; text-align: center; }
+
+    /* ======================================
+       🔐 หน้าเข้าสู่ระบบ / สมัคร (นิสิต)
+    ====================================== */
+    .auth-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: var(--bg); overflow-y: auto;
+      display: none; flex-direction: column; justify-content: center;
+      z-index: 9998; padding: 8%;
+    }
+    .auth-screen.active { display: flex; }
+    .auth-header { text-align: center; margin-bottom: 30px; }
+    .auth-logo { font-size: 2.5rem; margin-bottom: 10px; }
+    .auth-title { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+    .auth-desc { color: var(--text-light); line-height: 1.5; }
+    .auth-note { font-size: 0.85rem; color: var(--primary); background: #EFF6FF; padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .auth-card { background: white; border-radius: var(--radius); padding: 25px; box-shadow: var(--shadow); width: 100%; max-width: 420px; margin: 0 auto; }
+    .auth-tabs { display: flex; background: #F1F5F9; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+    .auth-tab { flex: 1; border: none; background: transparent; padding: 12px; border-radius: 10px; font-weight: 600; color: var(--text-light); cursor: pointer; transition: 0.2s; }
+    .auth-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .form-group { margin-bottom: 15px; position: relative; }
+    label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    input, select, textarea { width: 100%; padding: 14px; border: 2px solid #E2E8F0; border-radius: 12px; font-size: 1rem; background: white; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+    .form-hint { font-size: 0.8rem; color: var(--text-light); margin-top: 5px; }
+    .form-hint.error { color: var(--danger); }
+    .back-link { text-align: center; margin-top: 20px; color: var(--primary); font-size: 0.95rem; cursor: pointer; font-weight: 500; }
+    .alert { padding: 14px; border-radius: 12px; margin-bottom: 15px; font-size: 0.9rem; }
+    .alert-info { background: #EFF6FF; border-left: 4px solid var(--primary); color: #1E40AF; }
+    .alert-success { background: #F0FDF4; border-left: 4px solid var(--success); color: #166534; }
+    .alert-danger { background: #FEF2F2; border-left: 4px solid var(--danger); color: #991B1B; }
+    .alert-accent { background: #FFFBEB; border-left: 4px solid var(--accent); color: #92400E; }
+    .hidden { display: none !important; }
+
+    /* ======================================
+       🏠 หน้าหลักแอป (ปรับปรุง+เพิ่มฟีเจอร์)
+    ====================================== */
+    .main-app { display: none; padding-bottom: 85px; }
+    .main-app.active { display: block; }
+    .top-header { background: var(--primary); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 99; }
+    .logo { font-size: 1.1rem; font-weight: bold; }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .icon-btn { background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px; border-radius: 50%; color: white; font-size: 1rem; cursor: pointer; position: relative; }
+    .badge-count { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; }
+    .user-id { font-size: 0.85rem; opacity: 0.9; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    main { padding: 15px 5%; }
+    .page { display: none; animation: fadeIn 0.25s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    h2 { color: var(--primary); margin: 15px 0; font-size: 1.25rem; border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
+    .card { background: white; padding: 18px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 15px; border-top: 4px solid; }
+    .card-buy { border-top-color: var(--primary); }
+    .card-rent { border-top-color: #9333EA; }
+    .card-exchange { border-top-color: #0D9488; }
+    .card-digital { border-top-color: #2563EB; }
+    .type-badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; }
+    .badge-buy { background: #DBEAFE; color: #1E40AF; }
+    .badge-rent { background: #F3E8FF; color: #9333EA; }
+    .badge-exchange { background: #CCFBF1; color: #0D9488; }
+    .badge-digital { background: #DBEAFE; color: #1E40AF; }
+    .item-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; }
+    .item-meta { font-size: 0.85rem; color: var(--text-light); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .item-section { margin-bottom: 12px; }
+    .item-label { font-size: 0.8rem; font-weight: bold; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .item-content { font-size: 0.9rem; line-height: 1.6; color: var(--text); background: var(--bg); padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
+    .item-features { font-size: 0.85rem; color: var(--success); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap:8px; }
+    .price-main { font-size: 1.2rem; font-weight: bold; color: var(--success); }
+    .price-old { text-decoration: line-through; color: var(--text-light); font-size: 0.9rem; }
+    .btn-block { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 1rem; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-info { background: var(--info); color: white; }
+    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn-sm { padding: 8px 12px; font-size: 0.9rem; }
+    .empty-state { text-align:center; padding:60px 20px; color:var(--text-light); }
+    .empty-icon { font-size:3.5rem; opacity:0.3; margin-bottom:15px; }
+    .search-container { background: white; padding:25px; border-radius: var(--radius); box-shadow: var(--shadow); margin:20px 0; }
+    .search-box { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+    .search-input { flex:1 1 250px; padding:15px 20px; border:2px solid #E2E8F0; border-radius:50px; font-size:1rem; }
+    .search-btn { padding:15px 25px; background:var(--primary); color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer; font-size:1rem; }
+    .balance-card { background: linear-gradient(135deg, var(--primary), #3B82F6); color:white; padding: 25px; border-radius: var(--radius); text-align:center; margin-bottom:20px; box-shadow: var(--shadow); }
+    .balance-value { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+    .package-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:15px; margin-bottom:20px; }
+    .package-card { background: white; border: 3px solid transparent; border-radius: var(--radius); padding: 18px 15px; text-align:center; cursor:pointer; transition:0.3s; box-shadow: var(--shadow); position: relative; }
+    .package-card:hover { transform: translateY(-5px); }
+    .package-card.recommend { border-color: var(--success); background: #F0FDF4; }
+    .recommend-tag { position: absolute; top:-10px; left:50%; transform:translateX(-50%); background: var(--success); color:white; padding:3px 15px; border-radius:10px; font-size:0.75rem; font-weight:bold; }
+    .package-coin { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin: 8px 0; }
+    .package-price { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+    .package-note { font-size: 0.75rem; color: var(--text-light); }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 99; }
+    .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-light); cursor: pointer; padding: 5px 8px; border-radius: 8px; transition:0.2s; }
+    .nav-btn.active { color: var(--primary); font-weight: bold; background: rgba(30, 64, 175, 0.08); }
+    .nav-icon { font-size: 1.35rem; margin-bottom: 2px; }
+    .divider { height: 1px; background: #E2E8F0; margin: 15px 0; }
+
+    /* 🆕 ฟีเจอร์ใหม่: ตะกร้า/ธุรกรรม/จัดส่ง/แชท/หลักฐาน */
+    .cart-item { display: flex; gap: 12px; padding: 15px; background: white; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); align-items: center; flex-wrap: wrap; }
+    .cart-info { flex:1; min-width: 200px; }
+    .cart-qty { display: flex; align-items: center; gap:8px; }
+    .cart-qty button { width:32px; height:32px; border-radius:50%; border:none; background:#E2E8F0; cursor:pointer; }
+    .cart-total { text-align:right; font-size:1.1rem; font-weight:bold; margin-top:15px; padding:15px; background:#EFF6FF; border-radius:12px; }
+    .delivery-options { display:flex; gap:10px; flex-wrap:wrap; margin:15px 0; }
+    .delivery-option { flex:1 1 140px; padding:12px; border:2px solid #E2E8F0; border-radius:12px; text-align:center; cursor:pointer; font-size:0.9rem; }
+    .delivery-option.selected { border-color:var(--primary); background:#EFF6FF; }
+    .chat-box { background: var(--bg); border-radius:12px; padding:15px; margin:15px 0; max-height:300px; overflow-y:auto; }
+    .chat-message { margin-bottom:10px; padding:10px; border-radius:10px; font-size:0.9rem; }
+    .chat-other { background:white; border-bottom-left-radius:0; }
+    .chat-me { background:var(--primary); color:white; border-bottom-right-radius:0; margin-left:auto; }
+    .chat-input { display:flex; gap:8px; margin-top:10px; }
+    .receipt { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; margin:15px 0; font-size:0.9rem; }
+    .receipt-row { display:flex; justify-content:space-between; margin-bottom:8px; }
+    .receipt-id { font-family:monospace; color:var(--primary); font-weight:bold; }
+    .download-link { display:flex; align-items:center; gap:8px; padding:12px; background:#DBEAFE; color:#1E40AF; border-radius:8px; text-decoration:none; font-weight:bold; margin-top:10px; }
+    .exchange-card { border:2px solid #0D9488; background:#F0FDFA; }
+    .rent-rules { background: #FFFBEB; border-left:4px solid var(--accent); padding:15px; border-radius:8px; margin:15px 0; font-size:0.9rem; line-height:1.6; }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; padding:5%; }
+    .modal.active { display:flex; }
+    .modal-content { background:white; border-radius:var(--radius); padding:25px; max-width:450px; width:100%; max-height:90vh; overflow-y:auto; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .modal-close { background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-light); }
+  </style>
+</head>
+<body>
+
+<!-- ======================================
+     🚀 1. หน้าเริ่มต้น (Startup Style)
+====================================== -->
+<section class="splash-screen" id="splash">
+  <div class="splash-logo">📚</div>
+  <h1 class="splash-title">BookSwap</h1>
+  <p class="splash-sub">แพลตฟอร์มแลกเปลี่ยนหนังสือ & แบ่งปันความรู้<br><span class="splash-highlight">สำหรับนิสิตมหาวิทยาลัย</span> โดยเฉพาะ</p>
+  <div class="splash-btns">
+    <button class="btn btn-primary" onclick="goToAuth('register')">✨ เริ่มต้นใช้งาน</button>
+    <button class="btn btn-outline" onclick="goToAuth('login')">🔑 เข้าสู่ระบบ</button>
+  </div>
+  <div class="splash-footer">🎁 สมาชิกใหม่รับฟรี 200 Coin ทันที</div>
+</section>
+
+<!-- ======================================
+     🔐 2. หน้าเข้าสู่ระบบ / สมัคร (นิสิต)
+====================================== -->
+<section class="auth-screen" id="auth-screen">
+  <div class="auth-header">
+    <div class="auth-logo">🎓</div>
+    <h2 class="auth-title">ระบบสำหรับนิสิตเท่านั้น</h2>
+    <p class="auth-desc">ใช้อีเมลมหาวิทยาลัย + รหัสนิสิต เพื่อเข้าใช้งาน</p>
+    <div class="auth-note">💡 ตัวอย่าง: อีเมล: 64010XXX@msu.ac.th | รหัสนิสิต: 64010XXXX</div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</button>
+    </div>
+    <!-- เข้าสู่ระบบ: อีเมลมหาลัย + รหัสนิสิต -->
+    <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>📧 อีเมลมหาวิทยาลัย</label>
+        <input type="email" id="login-email" placeholder="ตัวอย่าง: 640101234@msu.ac.th" required>
+      </div>
+      <div class="form-group">
+        <label>🆔 รหัสนิสิต</label>
+        <input type="text" id="login-stdid" placeholder="กรอกรหัสนิสิต 8-12 หลัก" required minlength="8" maxlength="12">
+      </div>
+      <div id="login-error" class="form-hint error hidden"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">เข้าสู่ระบบ</button>
+    </form>
+    <!-- สมัครสมาชิก: ชื่อ + อีเมล + รหัสนิสิต -->
+    <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label>👤 ชื่อ-นามสกุล นิสิต</label>
+        <input type="text" id="reg-name" placeholder="ชื่อจริง-นามสกุล" required minlength="3">
+      </div>
+      <div class="form-group">
+        <label>📧 อีเมลมหาวิทยาลัย</label>
+        <input type="email" id="reg-email" placeholder="ใช้อีเมลทางการของมหาวิทยาลัย" required>
+      </div>
+      <div class="form-group">
+        <label>🆔 รหัสนิสิต</label>
+        <input type="text" id="reg-stdid" placeholder="รหัสประจำตัวนิสิต 8-12 หลัก" required minlength="8" maxlength="12">
+      </div>
+      <div class="alert alert-success">🎁 สมัครสำเร็จ รับฟรี 200 Coin ทันที!</div>
+      <div id="reg-error" class="form-hint error hidden"></div>
+      <button type="submit" class="btn btn-success" style="width:100%;">ยืนยันการสมัคร</button>
+    </form>
+  </div>
+  <div class="back-link" onclick="backToSplash()">← กลับหน้าแรก</div>
+</section>
+
+<!-- ======================================
+     🏠 3. หน้าหลักแอป (ครบฟีเจอร์+ใหม่ทั้งหมด)
+====================================== -->
+<div class="main-app" id="main-app">
+  <header class="top-header">
+    <div class="logo">📚 BookSwap</div>
+    <div class="header-actions">
+      <span class="user-id" id="display-stdid">รหัส: -</span>
+      <button class="icon-btn" onclick="goToPage('search')">🔍</button>
+      <button class="icon-btn" onclick="goToPage('cart')">🛒<span class="badge-count" id="cart-count">0</span></button>
+      <span style="font-size:0.9rem;">🪙 <span id="head-balance">0</span></span>
+    </div>
+  </header>
+  <main>
+    <!-- หน้าแรก -->
+    <div id="page-home" class="page active">
+      <h2>🔥 สินค้าแนะนำ & รูปแบบบริการ</h2>
+      <div class="alert alert-info">💡 ทุกรายการระบุรหัสวิชา+อาจารย์+เนื้อหา+จุดประสงค์ชัดเจน</div>
+      
+      <!-- 📕 สำหรับซื้อ -->
+      <div class="card card-buy">
+        <span class="type-badge badge-buy">📕 สำหรับซื้อ</span>
+        <div class="item-title">การบัญชีชั้นกลาง 1 (AC201)</div>
+        <div class="item-meta">รหัสวิชา: AC201 | อาจารย์: ผศ.ดร.สมชาย | สภาพ: ดีเยี่ยม</div>
+        <div class="item-section">
+          <div class="item-label">📖 เนื้อหา</div>
+          <div class="item-content">หลักการบัญชีขั้นสูง, การจัดทำงบการเงิน, พร้อมโจทย์ตัวอย่างครบทุกบท</div>
+        </div>
+        <div class="item-section">
+          <div class="item-label">🎯 จุดประสงค์</div>
+          <div class="item-content">ใช้เรียนในชั้น, เตรียมสอบ, เป็นพื้นฐานวิชาแรงขึ้น</div>
+        </div>
+        <div class="price-row"><span class="price-main">180 Coin</span></div>
+        <div class="item-features">🚚 จัดส่งได้ | 🤝 นัดรับได้ | 💬 สอบถามผู้ขาย</div>
+        <button class="btn-block btn-primary" onclick="addToCart('AC201', 'การบัญชีชั้นกลาง 1', 180)">🛒 เพิ่มลงตะกร้า</button>
+        <button class="btn-block btn-outline btn-sm" onclick="openChat('ผู้ขาย')">💬 สอบถามผู้ขาย</button>
+      </div>
+
+      <!-- 📗 สำหรับเช่า + กฎการเช่า -->
+      <div class="card card-rent">
+        <span class="type-badge badge-rent">📗 สำหรับเช่า</span>
+        <div class="item-title">สถิติธุรกิจ (ST201)</div>
+        <div class="item-meta">รหัสวิชา: ST201 | ค่ามัดจำ: 50 Coin | ค่าเช่า/เทอม: 35 Coin</div>
+        <div class="item-section">
+          <div class="item-label">📖 เนื้อหา</div>
+          <div class="item-content">ความน่าจะเป็น, การแจกแจง, การทดสอบสมมติฐาน</div>
+        </div>
+        <div class="rent-rules">
+          <strong>📜 กฎการเช่า:</strong><br>
+          • คืนหนังสือภายใน 7 วันหลังจบเทอม<br>
+          • ห้ามขีดเขียน/ฉีกขาด มิฉะนั้นริบมัดจำ<br>
+          • สามารถขยายเวลาเช่าได้ผ่านระบบ<br>
+          • สอบถามรายละเอียดเพิ่มเติมได้ตลอด
+        </div>
+        <div class="price-row"><span class="price-main">35 Coin/เทอม</span></div>
+        <button class="btn-block btn-primary" onclick="addToCartRent('ST201', 'สถิติธุรกิจ', 35, 50)">📅 เช่าเลย</button>
+        <button class="btn-block btn-outline btn-sm" onclick="openChat('ผู้ให้เช่า')">💬 สอบถามเพิ่มเติม</button>
+      </div>
+
+      <!-- 📘 สำหรับแลกเปลี่ยน -->
+      <div class="card card-exchange">
+        <span class="type-badge badge-exchange">🔄 แลกเปลี่ยนฟรี</span>
+        <div class="item-title">หลักเศรษฐศาสตร์ (EC101)</div>
+        <div class="item-meta">ต้องการแลกกับ: หนังสือบัญชีเบื้องต้น หรือชีทสรุป</div>
+        <div class="item-section">
+          <div class="item-label">📖 รายละเอียด</div>
+          <div class="item-content">สภาพดี ไม่มีรอยขีดเขียน ครบทุกหน้า พร้อมส่งต่อให้น้องหรือเพื่อน</div>
+        </div>
+        <div class="item-features">📍 นัดรับใกล้เคียง | 📝 ตรวจสอบสภาพก่อนรับ</div>
+        <button class="btn-block btn-success" onclick="openExchange()">🔄 เสนอแลกเปลี่ยน</button>
+      </div>
+
+      <!-- 📀 สินค้าดิจิทัล -->
+      <div class="card card-digital">
+        <span class="type-badge badge-digital">📄 ไฟล์ดิจิทัล</span>
+        <div class="item-title">ชีทสรุปฉบับเร่งรัด AC201</div>
+        <div class="item-meta">รูปแบบ: PDF | ง่ายต่อการดาวน์โหลด/พิมพ์</div>
+        <div class="item-section">
+          <div class="item-label">📖 เนื้อหา</div>
+          <div class="item-content">สรุปประเด็นสำคัญทุกบท, ข้อสอบย้อนหลัง 3 ปี, เฉลยละเอียด</div>
+        </div>
+        <div class="price-row"><span class="price-main">60 Coin</span></div>
+        <button class="btn-block btn-info" onclick="buyDigital('AC201-DIGI', 'ชีทสรุป AC201', 60)">📥 ซื้อและดาวน์โหลด</button>
+      </div>
+    </div>
+
+    <!-- ซื้อหนังสือ -->
+    <div id="page-buy" class="page">
+      <h2>🛒 ซื้อหนังสือ & ชีทสรุป</h2>
+      <div class="alert alert-info">💡 ค้นหาโดย: รหัสวิชา / ชื่อวิชา / อาจารย์</div>
+      <div class="card card-buy">
+        <span class="type-badge badge-buy">📕 หนังสือเรียน</span>
+        <div class="item-title">การบัญชีเบื้องต้น (AC101)</div>
+        <div class="item-meta">รหัสวิชา: AC101 | สภาพ: ดีมาก</div>
+        <div class="item-section">
+          <div class="item-label">📖 เนื้อหา</div>
+          <div class="item-content">พื้นฐานการบัญชี, บัญชีแยกประเภท, งบทดลอง</div>
+        </div>
+        <div class="price-row"><span class="price-main">120 Coin</span></div>
+        <button class="btn-block btn-primary" onclick="addToCart('AC101', 'การบัญชีเบื้องต้น', 120)">🛒 เพิ่มลงตะกร้า</button>
+      </div>
+    </div>
+
+    <!-- เช่าหนังสือ -->
+    <div id="page-rent" class="page">
+      <h2>📅 เช่าหนังสือเรียน</h2>
+      <div class="alert alert-info">💡 ประหยัดสูงสุด 80% คืนเมื่อจบเทอม</div>
+      <div class="rent-rules">
+        <strong>📜 กฎการเช่าทั่วไป:</strong><br>
+        • ต้องชำระค่ามัดจำก่อนเริ่ม<br>
+        • คืนสินค้าตามกำหนด<br>
+        • สอบถามผู้ให้เช่าได้โดยตรงผ่านแชท
+      </div>
+      <div class="card card-rent">
+        <span class="type-badge badge-rent">📗 สำหรับเช่า</span>
+        <div class="item-title">ภาษีธุรกิจ (TX301)</div>
+        <div class="item-meta">ค่ามัดจำ: 60 Coin | ค่าเช่า/เทอม: 40 Coin</div>
+        <div class="item-section">
+          <div class="item-label">📖 เนื้อหา</div>
+          <div class="item-content">ภาษีเงินได้, ภาษีมูลค่าเพิ่ม, กฎหมายสรรพากร</div>
+        </div>
+        <div class="price-row"><span class="price-main">40 Coin/เทอม</span></div>
+        <button class="btn-block btn-primary" onclick="addToCartRent('TX301', 'ภาษีธุรกิจ', 40, 60)">📅 เช่าเลย</button>
+        <button class="btn-block btn-outline btn-sm" onclick="openChat('ผู้ให้เช่า')">💬 สอบถามรายละเอียด</button>
+      </div>
+    </div>
+
+    <!-- 🔄 แลกเปลี่ยนหนังสือ -->
+    <div id="page-exchange" class="page">
+      <h2>🔄 พื้นที่แลกเปลี่ยนหนังสือ</h2>
+      <div class="alert alert-success">💡 ส่งต่อหนังสือที่ไม่ได้ใช้แล้ว เพื่อประโยชน์ร่วมกัน ไม่ต้องใช้เงิน</div>
+      <div class="card exchange-card">
+        <div class="form-group">
+          <label>📤 หนังสือที่มีต้องการแลก</label>
+          <input type="text" placeholder="ชื่อ+รหัสวิชา">
+        </div>
+        <div class="form-group">
+          <label>📥 ต้องการแลกกับ</label>
+          <input type="text" placeholder="ระบุรายการที่ต้องการ">
+        </div>
+        <div class="form-group">
+          <label>📍 สถานที่นัดรับที่สะดวก</label>
+          <input type="text" placeholder="ระบุจุดนัดพบใกล้เคียง">
+        </div>
+        <button class="btn-block btn-success">✅ ประกาศแลกเปลี่ยน</button>
+      </div>
+    </div>
+
+    <!-- ประกาศสินค้า -->
+    <div id="page-sell" class="page">
+      <h2>📤 ประกาศขาย / ให้เช่า / แลกเปลี่ยน</h2>
+      <div class="alert alert-info">💡 ระบบหักค่าธรรมเนียม 10% เพื่อดูแลแพลตฟอร์ม</div>
+      <div class="card">
+        <div class="form-group">
+          <label>ประเภท: ขาย / เช่า / แลกเปลี่ยน / ไฟล์ดิจิทัล</label>
+          <select id="item-type">
+            <option>ขาย</option>
+            <option>ให้เช่า</option>
+            <option>แลกเปลี่ยน</option>
+            <option>ไฟล์ดิจิทัล</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ชื่อสินค้า + รหัสวิชา</label>
+          <input type="text" placeholder="เช่น ชีทสรุป AC201">
+        </div>
+        <div class="form-group">
+          <label>อาจารย์ผู้สอน</label>
+          <input type="text" placeholder="ระบุชื่ออาจารย์">
+        </div>
+        <div class="form-group">
+          <label>📖 เนื้อหาโดยละเอียด</label>
+          <textarea rows="3" placeholder="บรรยายเนื้อหาคร่าวๆ"></textarea>
+        </div>
+        <div class="form-group">
+          <label>🎯 จุดเด่น & จุดประสงค์</label>
+          <textarea rows="2" placeholder="เช่น ใช้สอบกลางภาค/ปลายภาค"></textarea>
+        </div>
+        <div class="form-group">
+          <label>ราคา (Coin ไม่เกิน 200)</label>
+          <input type="number" max="200" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>ตัวเลือกการจัดส่ง</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <label style="font-size:0.9rem;"><input type="checkbox" checked> นัดรับใกล้เคียง</label>
+            <label style="font-size:0.9rem;"><input type="checkbox"> จัดส่งโดยขนส่ง</label>
+            <label style="font-size:0.9rem;"><input type="checkbox"> ดาวน์โหลดออนไลน์</label>
+          </div>
+        </div>
+        <button class="btn-block btn-success">✅ ประกาศสินค้า</button>
+      </div>
+    </div>
+
+    <!-- คลังความรู้ -->
+    <div id="page-library" class="page">
+      <h2>🌐 คลังความรู้นิสิต</h2>
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="ค้นหาเอกสาร, งานวิจัย, สรุปย่อ...">
+          <button class="search-btn">🔍</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- เติม Coin + หลักฐานการทำรายการ -->
+    <div id="page-topup" class="page">
+      <h2>🪙 เติม Coin เข้าระบบ</h2>
+      <div class="balance-card">
+        <div class="balance-label">ยอด Coin ของคุณ</div>
+        <div class="balance-value" id="head-balance">0</div>
+      </div>
+      <div class="package-grid">
+        <div class="package-card" onclick="selectPackage(this, 39, 120)">
+          <div class="package-coin">120</div>
+          <div class="package-price">39 บาท</div>
+        </div>
+        <div class="package-card recommend" onclick="selectPackage(this, 100, 350)">
+          <div class="recommend-tag">คุ้มสุด</div>
+          <div class="package-coin">350</div>
+          <div class="package-price">100 บาท</div>
+        </div>
+        <div class="package-card" onclick="selectPackage(this, 300, 1100)">
+          <div class="package-coin">1,100</div>
+          <div class="package-price">300 บาท</div>
+        </div>
+      </div>
+      <div class="alert alert-accent">📝 หลังชำระเงิน ระบบจะบันทึกหลักฐานอัตโนมัติ</div>
+      <div class="receipt" id="receipt-area" style="display:none;">
+        <h4>🧾 หลักฐานการเติมเงิน</h4>
+        <div class="divider"></div>
+        <div class="receipt-row"><span>รหัสธุรกรรม:</span><span class="receipt-id" id="trans-id">-</span></div>
+        <div class="receipt-row"><span>แพ็กเกจ:</span><span id="trans-pack">-</span></div>
+        <div class="receipt-row"><span>จำนวนเงิน:</span><span id="trans-price">-</span></div>
+        <div class="receipt-row"><span>วันที่:</span><span id="trans-date">-</span></div>
+        <div class="receipt-row"><span>สถานะ:</span><span style="color:var(--success); font-weight:bold;">✅ สำเร็จ</span></div>
+      </div>
+    </div>
+
+    <!-- 🛒 ตะกร้าสินค้าเต็มระบบ -->
+    <div id="page-cart" class="page">
+      <h2>🧺 ตะกร้าสินค้า</h2>
+      <div class="alert alert-info">🔐 เงินจะค้างในระบบจนกว่าคุณจะยืนยันได้รับสินค้า</div>
+      <div id="cart-list">
+        <div class="empty-state" id="cart-empty">
+          <div class="empty-icon">🛒</div>
+          <p>ตะกร้าว่างอยู่</p>
+        </div>
+      </div>
+      <div id="cart-full" style="display:none;">
+        <div class="divider"></div>
+        <h4>🚚 เลือกวิธีการจัดส่ง</h4>
+        <div class="delivery-options">
+          <div class="delivery-option selected" onclick="selectDelivery(this)">🤝 นัดรับใกล้เคียง</div>
+          <div class="delivery-option" onclick="selectDelivery(this)">📮 จัดส่งทั่วไป (+10 Coin)</div>
+          <div class="delivery-option" onclick="selectDelivery(this)">📥 ดาวน์โหลดออนไลน์</div>
+        </div>
+        <div class="cart-total">รวมทั้งสิ้น: <span id="cart-total">0</span> Coin</div>
+        <button class="btn-block btn-success" onclick="confirmOrder()">✅ ยืนยันการสั่งซื้อ</button>
+      </div>
+    </div>
+
+    <!-- ค้นหา -->
+    <div id="page-search" class="page">
+      <h2>🔍 ค้นหารายการ</h2>
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="พิมพ์คำค้นหา...">
+          <button class="search-btn">🔍 ค้นหา</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- เมนูหลักล่าง (ครบถ้วน) -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="home"><span class="nav-icon">🏠</span><span>หน้าแรก</span></button>
+    <button class="nav-btn" data-page="buy"><span class="nav-icon">🛒</span><span>ซื้อ</span></button>
+    <button class="nav-btn" data-page="rent"><span class="nav-icon">📅</span><span>เช่า</span></button>
+    <button class="nav-btn" data-page="exchange"><span class="nav-icon">🔄</span><span>แลก</span></button>
+    <button class="nav-btn" data-page="sell"><span class="nav-icon">📤</span><span>ประกาศ</span></button>
+    <button class="nav-btn" data-page="topup"><span class="nav-icon">🪙</span><span>เติม</span></button>
+  </nav>
+</div>
+
+<!-- 🆕 หน้าต่างแชทสอบถาม -->
+<div class="modal" id="chat-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>💬 สอบถามรายละเอียด</h3>
+      <button class="modal-close" onclick="closeChat()">×</button>
+    </div>
+    <div class="chat-box" id="chat-history">
+      <div class="chat-message chat-other">สวัสดีครับ สอบถามอะไรได้เลยครับ</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chat-text" placeholder="พิมพ์ข้อความ...">
+      <button class="btn btn-primary btn-sm" onclick="sendChat()">ส่ง</button>
+    </div>
+  </div>
+</div>
+
+<!-- ⚙️ ระบบควบคุมหลัก (รักษาโครงสร้างเดิม+เพิ่มฟังก์ชันใหม่) -->
+<script>
+let currentUser = null;
+const SITE_KEY = 'bookswap_student_data';
+const ALLOWED_DOMAIN = 'msu.ac.th';
+let cart = [];
+let transactionId = '';
+
+// ========== นำทางหลัก (คงเดิม) ==========
+function goToAuth(mode) {
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('auth-screen').classList.add('active');
+  switchAuthTab(mode);
+}
+function backToSplash() {
+  document.getElementById('splash').classList.remove('hidden');
+  document.getElementById('auth-screen').classList.remove('active');
+}
+function showMainApp(userData) {
+  currentUser = userData;
+  localStorage.setItem(SITE_KEY, JSON.stringify(userData));
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('main-app').classList.add('active');
+  document.getElementById('display-stdid').textContent = `รหัส: ${userData.stdId}`;
+  updateBalance(userData.balance || 0);
+}
+function updateBalance(coin) {
+  document.getElementById('head-balance').textContent = coin;
+  if(currentUser) currentUser.balance = coin;
+}
+
+// ========== สลับหน้าในแอป (ใช้ข้อมูลร่วมกัน) ==========
+function goToPage(pageName) {
+  document.querySelectorAll('.main-app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${pageName}`).classList.add('active');
+ 
