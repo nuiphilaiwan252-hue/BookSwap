@@ -426,8 +426,8 @@
       <h2>🌐 คลังความรู้นิสิต</h2>
       <div class="search-container">
         <div class="search-box">
-          <input type="text" class="search-input" placeholder="ค้นหาเอกสาร, งานวิจัย, สรุปย่อ...">
-          <button class="search-btn">🔍</button>
+         <input type="text" id="search-input" class="search-input" placeholder="พิมพ์รหัสวิชา, ชื่อวิชา หรือชื่ออาจารย์..." onkeyup="searchBooks()">
+         <button class="search-btn" onclick="searchBooks()">🔍 ค้นหา</button>
         </div>
       </div>
     </div>
@@ -697,6 +697,24 @@ function sendChat() {
     history.innerHTML += `<div class="chat-message chat-me">${input.value}</div>`;
     input.value = '';
     history.scrollTop = history.scrollHeight;
+}
+  // ==================== ระบบค้นหารายวิชา ====================
+function searchBooks() {
+    const input = document.getElementById('search-input');
+    if (!input) return;
+    const filter = input.value.toLowerCase().trim();
+    
+    // ดึงการ์ดหนังสือทั้งหมดในหน้านั้นมาตรวจสอบ
+    const cards = document.querySelectorAll('.card, .card-buy');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
 }
 </script>
 </body>
