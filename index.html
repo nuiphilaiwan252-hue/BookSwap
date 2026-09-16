@@ -421,20 +421,29 @@
       </div>
     </div>
 
+   <!-- หน้าค้นหา -->
     <div id="page-search" class="page">
-  <h2>🔍 ค้นหารายการ</h2>
-  <div class="search-container">
-    <div class="search-box">
-      <input type="text" id="search-input" class="search-input" placeholder="พิมพ์คำค้นหา..." onkeyup="searchBooks()">
-      <button type="button" class="search-btn" onclick="searchBooks()">🔍 ค้นหา</button>
-    </div>
-  </div>
+      <h2>🔍 ค้นหารายการ</h2>
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="search-input" class="search-input" placeholder="พิมพ์รหัสวิชา, ชื่อวิชา หรือชื่ออาจารย์..." onkeyup="searchBooks()">
+          <button type="button" class="search-btn" onclick="searchBooks()">🔍 ค้นหา</button>
+        </div>
+      </div>
 
-  <!-- โซนการ์ดหนังสือต้องอยู่ข้างในนี้ -->
-  <div id="search-results" style="margin-top: 15px;">
-    <div class="card card-buy">...</div>
-    <div class="card card-buy">...</div>
-  </div>
+      <!-- โซนรายการผลการค้นหา -->
+      <div id="search-results" style="margin-top: 15px;">
+        <div class="card card-buy">
+          <span class="type-badge badge-buy">📕 สำหรับซื้อ</span>
+          <div class="item-title">หลักเศรษฐศาสตร์ (EC101)</div>
+          <div class="item-meta">รหัสวิชา: EC101 | อาจารย์: ผศ.ดร.สมเกียรติ | สภาพ: ดีมาก</div>
+          <div class="item-section">
+            <div class="item-label">📖 เนื้อหา</div>
+            <div class="item-content">เศรษฐศาสตร์จุลภาค มหาภาค อุปสงค์ อุปทาน เบื้องต้นครบถ้วน</div>
+          </div>
+          <div class="price-row"><span class="price-main">150 Coin</span></div>
+          <button type="button" class="btn-block btn-primary" onclick="addToCart('EC101', 'หลักเศรษฐศาสตร์', 150)">🛒 เพิ่มลงตะกร้า</button>
+        </div>
 
         <div class="card card-buy">
           <span class="type-badge badge-buy">📕 สำหรับซื้อ</span>
@@ -445,7 +454,7 @@
             <div class="item-content">หลักการบัญชีขั้นสูง การจัดทำงบการเงิน พร้อมโจทย์ตัวอย่าง</div>
           </div>
           <div class="price-row"><span class="price-main">180 Coin</span></div>
-          <button class="btn-block btn-primary" onclick="addToCart('AC201', 'การบัญชีชั้นกลาง 1', 180)">🛒 เพิ่มลงตะกร้า</button>
+          <button type="button" class="btn-block btn-primary" onclick="addToCart('AC201', 'การบัญชีชั้นกลาง 1', 180)">🛒 เพิ่มลงตะกร้า</button>
         </div>
 
         <div class="card card-rent">
@@ -457,9 +466,10 @@
             <div class="item-content">ความน่าจะเป็น การแจกแจง การทดสอบสมมติฐาน</div>
           </div>
           <div class="price-row"><span class="price-main">35 Coin/เทอม</span></div>
-          <button class="btn-block btn-primary" onclick="addToCartRent('ST201', 'สถิติธุรกิจ', 35, 50)">📅 เช่าเลย</button>
+          <button type="button" class="btn-block btn-primary" onclick="addToCartRent('ST201', 'สถิติธุรกิจ', 35, 50)">📅 เช่าเลย</button>
         </div>
       </div>
+    </div>
     <!-- เติม Coin + หลักฐานการทำรายการ -->
     <div id="page-topup" class="page">
       <h2>🪙 เติม Coin เข้าระบบ</h2>
