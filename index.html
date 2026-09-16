@@ -608,6 +608,97 @@ function handleLogin(event) {
 }
 // ========== สลับหน้าในแอป (ใช้ข้อมูลร่วมกัน) ==========
 function goToPage(pageName) {
-  document.querySelectorAll('.main-app .page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${pageName}`).classList.add('active');
+    document.querySelectorAll('.main-app .page').forEach(p => p.classList.remove('active'));
+    const targetPage = document.getElementById(`page-${pageName}`);
+    if (targetPage) targetPage.classList.add('active');
+    
+    // อัปเดตสีปุ่มเมนูด้านล่าง
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-page') === pageName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// ผูกฟังก์ชันคลิกเมนูด้านล่าง
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pageName = btn.getAttribute('data-page');
+            if (pageName) goToPage(pageName);
+        });
+    });
+});
+
+// ฟังก์ชันตะกร้าและระบบเสริม
+function addToCart(code, title, price) {
+    cart.push({ code, title, price, type: 'buy' });
+    updateCartUI();
+    alert(`เพิ่ม "${title}" ลงในตะกร้าแล้ว`);
+}
+
+function addToCartRent(code, title, price, deposit) {
+    cart.push({ code, title, price: price + deposit, type: 'rent' });
+    updateCartUI();
+    alert(`เพิ่มรายการเช่า "${title}" ลงในตะกร้าแล้ว`);
+}
+
+function updateCartUI() {
+    document.getElementById('cart-count').textContent = cart.length;
+    const cartList = document.getElementById('cart-list');
+    const cartEmpty = document.getElementById('cart-empty');
+    const cartFull = document.getElementById('cart-full');
+    
+    if (cart.length === 0) {
+        if(cartEmpty) cartEmpty.style.display = 'block';
+        if(cartFull) cartFull.style.display = 'none';
+    } else {
+        if(cartEmpty) cartEmpty.style.display = 'none';
+        if(cartFull) cartFull.style.display = 'block';
+        
+        let total = 0;
+        let html = '';
+        cart.forEach((item, index) => {
+            total += item.price;
+            html += `
+                <div class="cart-item">
+                    <div class="cart-info">
+                        <strong>${item.title}</strong> (${item.code})
+                        <div style="font-size:0.85rem; color:var(--text-light);">${item.price} Coin</div>
+                    </div>
+                    <button onclick="removeFromCart(${index})" style="color:red; background:none; border:none; cursor:pointer;">🗑️ ลบ</button>
+                </div>
+            `;
+        });
+        cartList.innerHTML = html;
+        document.getElementById('cart-total').textContent = total;
+    }
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartUI();
+}
+
+function openChat(name) {
+    document.getElementById('chat-modal').classList.add('active');
+}
+
+function closeChat() {
+    document.getElementById('chat-modal').classList.remove('active');
+}
+
+function sendChat() {
+    const input = document.getElementById('chat-text');
+    if(!input.value.trim()) return;
+    const history = document.getElementById('chat-history');
+    history.innerHTML += `<div class="chat-message chat-me">${input.value}</div>`;
+    input.value = '';
+    history.scrollTop = history.scrollHeight;
+}
+</script>
+</body>
+</html>
  
